@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Digital de Documentos</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #58a6ff;
+        }
+
+        #imageInput {
+            margin-bottom: 15px;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #238636;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2ea043;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        #extractedText {
+            background-color: #21262d;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            min-height: 50px;
+        }
+
+        #loading {
+            display: none;
+            font-size: 18px;
+            margin-top: 20px;
+            color: #888;
+        }
+
+        #restartButton {
+            display: none;
+            background-color: #6e42a3;
+            margin-top: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Transcrição de Texto de Imagem</h1>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="processImage()">Processar Imagem</button>
+        <div id="loading">Carregando...</div>
+        <div id="result">
+            <h2>Texto Extraído:</h2>
+            <p id="extractedText">Nenhum texto extraído ainda.</p>
+        </div>
+        <button id="restartButton" onclick="restartProcess()">Recomeçar</button>
+    </div>
+
+    <script>
+        async function processImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Por favor, selecione uma imagem.");
+                return;
+            }
+
+            // Mostrar o status de carregamento
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('extractedText').textContent = '';
+
+            const apiKey = "K8443683848895"; // Substitua pela sua chave da OCR.space
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("apikey", apiKey);
+
+            const apiUrl = "https://api.ocr.space/parse/image";
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Ocultar o status de carregamento
+                document.getElementById('loading').style.display = 'none';
+
+                if (result.IsErroredOnProcessing) {
+                    document.getElementById('extractedText').textContent = "Erro ao processar a imagem.";
+                } else {
+                    const text = result.ParsedResults[0].ParsedText;
+                    document.getElementById('extractedText').textContent = text || "Nenhum texto detectado.";
+                }
+
+                // Exibir o botão de reiniciar
+                document.getElementById('restartButton').style.display = 'block';
+
+            } catch (error) {
+                console.error("Erro:", error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('extractedText').textContent = "Erro ao processar a imagem.";
+            }
+        }
+
+        function restartProcess() {
+            // Limpar o formulário e esconder o botão de reiniciar
+            document.getElementById('imageInput').value = '';
+            document.getElementById('extractedText').textContent = 'Nenhum texto extraído ainda.';
+            document.getElementById('restartButton').style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
